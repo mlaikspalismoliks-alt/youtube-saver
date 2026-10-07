@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core Dark SaaS Palette */
+  --background: 11 12 16;        /* #0b0c10 - Deep Charcoal Black */
+  --surface: 18 20 26;           /* #12141a - Refined Container Surface */
+  --surface-elevated: 25 28 36;  /* #191c24 - Elevated Surface (Cards, Dropdowns) */
+  --surface-hover: 32 36 46;     /* #20242e - Hover feedback */
+  
+  --border: 38 43 54;            /* #262b36 - Clean subtle border */
+  --border-subtle: 26 30 39;     /* #1a1e27 - Secondary divider */
+  --border-focus: 80 115 250;    /* #5073fa - Focus ring */
+
+  --text-primary: 245 246 248;   /* High contrast crisp white */
+  --text-secondary: 156 163 175; /* Slate secondary */
+  --text-muted: 100 108 123;     /* Tertiary metadata */
+
+  /* Restrained Professional Accent - easily customizable */
+  --accent: 80 115 250;          /* Clean Technical Indigo */
+  --accent-hover: 106 137 252;
+  --accent-muted: 24 33 66;
+  --accent-foreground: 255 255 255;
+
+  /* Status Colors */
+  --success: 34 197 94;
+  --success-muted: 20 46 30;
+  --warning: 234 179 8;
+  --warning-muted: 48 38 15;
+  --error: 244 63 94;
+  --error-muted: 48 18 24;
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--border));
+  }
+  
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--text-primary));
+    min-height: 100vh;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--text-muted));
+  }
+}
+
+/* Skeleton Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}

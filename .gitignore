@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+media_storage
+*.log
+.env
+.env.local
+.DS_Store
+src/server_backup

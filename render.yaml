@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: youtube-saver
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    autoDeploy: true
