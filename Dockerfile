@@ -25,11 +25,11 @@ RUN npm run build
 # Create media storage directory
 RUN mkdir -p /app/media_storage
 
-# Expose port
-EXPOSE 3000
+# Expose port (7860 for Hugging Face Spaces)
+EXPOSE 7860
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=7860
 ENV HOSTNAME=0.0.0.0
 
-CMD ["npm", "start"]
+CMD ["npm", "start", "--", "-p", "7860"]
