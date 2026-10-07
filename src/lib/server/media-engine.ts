@@ -15,6 +15,23 @@ const PYTHON_CMD = (() => {
   }
 })();
 
+/**
+ * Returns command and base args for running yt-dlp (standalone binary or python module)
+ */
+function getYtDlpExecution(): { command: string; baseArgs: string[] } {
+  const localBinary = path.join(process.cwd(), "yt-dlp");
+  const localBinaryWin = path.join(process.cwd(), "yt-dlp.exe");
+
+  if (fs.existsSync(localBinary)) {
+    return { command: localBinary, baseArgs: [] };
+  }
+  if (fs.existsSync(localBinaryWin)) {
+    return { command: localBinaryWin, baseArgs: [] };
+  }
+
+  return { command: PYTHON_CMD, baseArgs: ["-m", "yt_dlp"] };
+}
+
 // Locate static ffmpeg binary installed in node_modules
 let ffmpegBinaryPath = "";
 try {
@@ -53,9 +70,9 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
   }
 
   return new Promise((resolve, reject) => {
+    const { command, baseArgs } = getYtDlpExecution();
     const args = [
-      "-m",
-      "yt_dlp",
+      ...baseArgs,
       "--dump-single-json",
       "--no-warnings",
       "--no-playlist",
@@ -194,9 +211,9 @@ export function startMediaDownload(
   const ext = isAudio ? "mp3" : "mp4";
   const outputTemplate = path.join(STORAGE_DIR, `${jobId}.%(ext)s`);
 
+  const { command, baseArgs } = getYtDlpExecution();
   const args = [
-    "-m",
-    "yt_dlp",
+    ...baseArgs,
     "--newline",
     "--no-warnings",
     "--no-check-certificates",
@@ -237,7 +254,7 @@ export function startMediaDownload(
 
   args.push("-o", outputTemplate, url.trim());
 
-  const py = spawn(PYTHON_CMD, args);
+  const py = spawn(command, args);
 
   let stderrOutput = "";
 
