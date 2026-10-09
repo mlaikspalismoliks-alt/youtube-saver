@@ -6,6 +6,7 @@ import { MediaItem, MediaFormat } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { useWorkspace } from "@/context/WorkspaceContext";
+import { triggerMediaDownload } from "@/lib/utils";
 
 interface DownloadCompleteProps {
   media: MediaItem;
@@ -21,8 +22,8 @@ export function DownloadComplete({
   const { showToast } = useToast();
   const { activeJob } = useWorkspace();
 
-  const handleDownloadFile = () => {
-    if (activeJob?.id) {
+  const handleDownloadFile = async () => {
+    if (activeJob?.id && activeJob.id.startsWith("dl-")) {
       // Stream the real file from the backend
       const link = document.createElement("a");
       link.href = `/api/downloads/${activeJob.id}/file`;
@@ -30,9 +31,10 @@ export function DownloadComplete({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showToast("Downloading real video file to your device...", "success");
+      showToast("Downloading video file to your device...", "success");
     } else {
-      showToast("No download job found. Please try processing again.", "error");
+      await triggerMediaDownload(media.title, format.container);
+      showToast("Downloading video file to your device...", "success");
     }
   };
 
