@@ -22,10 +22,12 @@ function getYtDlpExecution(): { command: string; baseArgs: string[] } {
   const localBinary = path.join(process.cwd(), "yt-dlp");
   const localBinaryWin = path.join(process.cwd(), "yt-dlp.exe");
 
-  // Bypass YouTube bot detection / 429 login requirements by using mobile/app extractor clients
+  // Bypass YouTube bot detection / 429 login requirements by prioritizing android/ios/web clients
   const commonArgs = [
     "--extractor-args",
-    "youtube:player_client=android,ios,web",
+    "youtube:player_client=android,ios,web;player_skip=configs,webpage",
+    "--user-agent",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   ];
 
   if (fs.existsSync(localBinaryWin)) {
@@ -105,14 +107,22 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
     });
 
     py.on("close", (code) => {
-      if (code !== 0 || !stdoutData) {
+      if (code !== 0 || !stdoutData.trim()) {
         return reject(
           new Error(stderrData || "Failed to extract media information from URL.")
         );
       }
 
       try {
-        const raw = JSON.parse(stdoutData);
+        // Strip any unexpected non-JSON prefixes or warnings that might leak into stdout
+        const trimmed = stdoutData.trim();
+        const jsonStart = trimmed.indexOf("{");
+        const jsonEnd = trimmed.lastIndexOf("}");
+        if (jsonStart === -1 || jsonEnd === -1) {
+          throw new Error("No valid JSON found in yt-dlp response.");
+        }
+        const jsonString = trimmed.substring(jsonStart, jsonEnd + 1);
+        const raw = JSON.parse(jsonString);
 
         const durationSec = raw.duration || 0;
         const mins = Math.floor(durationSec / 60);
