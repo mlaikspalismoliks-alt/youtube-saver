@@ -164,6 +164,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const serverStatus = await mediaService.getDownloadStatus(jobId);
 
       if (serverStatus) {
+        setActiveJob(serverStatus);
         setDownloaderProgress(serverStatus.progress);
         setDownloads((prev) =>
           prev.map((d) => (d.id === jobId ? serverStatus : d))

@@ -22,14 +22,20 @@ function getYtDlpExecution(): { command: string; baseArgs: string[] } {
   const localBinary = path.join(process.cwd(), "yt-dlp");
   const localBinaryWin = path.join(process.cwd(), "yt-dlp.exe");
 
-  if (fs.existsSync(localBinary)) {
-    return { command: localBinary, baseArgs: [] };
-  }
+  // Bypass YouTube bot detection / 429 login requirements by using mobile/app extractor clients
+  const commonArgs = [
+    "--extractor-args",
+    "youtube:player_client=android,ios,web",
+  ];
+
   if (fs.existsSync(localBinaryWin)) {
-    return { command: localBinaryWin, baseArgs: [] };
+    return { command: localBinaryWin, baseArgs: [...commonArgs] };
+  }
+  if (fs.existsSync(localBinary)) {
+    return { command: localBinary, baseArgs: [...commonArgs] };
   }
 
-  return { command: PYTHON_CMD, baseArgs: ["-m", "yt_dlp"] };
+  return { command: PYTHON_CMD, baseArgs: ["-m", "yt_dlp", ...commonArgs] };
 }
 
 // Locate static ffmpeg binary installed in node_modules
@@ -85,7 +91,7 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
 
     args.push(url.trim());
 
-    const py = spawn(PYTHON_CMD, args);
+    const py = spawn(command, args);
 
     let stdoutData = "";
     let stderrData = "";
@@ -263,12 +269,18 @@ export function startMediaDownload(
 
     // Regex match yt-dlp progress output
     // Example: [download]  42.5% of ~ 85.34MiB at  12.43MiB/s ETA 00:04
-    const match = text.match(/\[download\]\s+([\d.]+)%\s+of\s+~?([^\s]+)\s+at\s+([^\s]+)\s+ETA\s+([^\s]+)/i);
+    const match = text.match(/\[download\]\s+([\d.]+)%\s+of\s+~?\s*([^\s]+)\s+at\s+([^\s]+)\s+ETA\s+([^\s]+)/i);
     if (match) {
       const pct = parseFloat(match[1]);
       const speed = match[3];
       const eta = match[4];
       onProgress(pct, speed, eta);
+    } else {
+      const simpleMatch = text.match(/\[download\]\s+([\d.]+)%/i);
+      if (simpleMatch) {
+        const pct = parseFloat(simpleMatch[1]);
+        onProgress(pct, "Downloading...", "Calculating...");
+      }
     }
   });
 
@@ -278,7 +290,15 @@ export function startMediaDownload(
 
   py.on("close", (code) => {
     if (code === 0) {
-      const finalFile = path.join(STORAGE_DIR, `${jobId}.${ext}`);
+      let finalFile = path.join(STORAGE_DIR, `${jobId}.${ext}`);
+      if (!fs.existsSync(finalFile)) {
+        // Fallback: locate any output file starting with jobId prefix
+        const files = fs.readdirSync(STORAGE_DIR);
+        const match = files.find((f) => f.startsWith(`${jobId}.`));
+        if (match) {
+          finalFile = path.join(STORAGE_DIR, match);
+        }
+      }
       onComplete(finalFile);
     } else {
       onError(stderrOutput || `Download failed with exit code ${code}`);
