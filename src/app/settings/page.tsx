@@ -15,11 +15,64 @@ import {
   Check,
   Trash2,
   CheckCircle2,
+  Server,
+  Globe,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 export default function SettingsPage() {
   const { settings, updateSettings, clearTempStorage } = useWorkspace();
+  const { showToast } = useToast();
   const [clearing, setClearing] = React.useState(false);
+
+  const [backendUrl, setBackendUrl] = React.useState("");
+  const [testingConnection, setTestingConnection] = React.useState(false);
+  const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connected" | "failed">("idle");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("backend_api_url") || "";
+      setBackendUrl(stored);
+    }
+  }, []);
+
+  const handleSaveBackendUrl = () => {
+    if (typeof window !== "undefined") {
+      const clean = backendUrl.trim().replace(/\/+$/, "");
+      if (clean) {
+        localStorage.setItem("backend_api_url", clean);
+        showToast("Backend URL saved successfully.", "success");
+      } else {
+        localStorage.removeItem("backend_api_url");
+        showToast("Backend URL reset to default.", "info");
+      }
+    }
+  };
+
+  const handleTestBackendConnection = async () => {
+    const target = backendUrl.trim().replace(/\/+$/, "");
+    const testUrl = target ? `${target}/api/downloads` : "/api/downloads";
+    setTestingConnection(true);
+    setConnectionStatus("idle");
+
+    try {
+      const res = await fetch(testUrl, { method: "GET" });
+      if (res.ok) {
+        setConnectionStatus("connected");
+        showToast("Connected to backend successfully!", "success");
+      } else {
+        setConnectionStatus("failed");
+        showToast(`Backend returned status ${res.status}`, "error");
+      }
+    } catch {
+      setConnectionStatus("failed");
+      showToast("Could not reach backend URL. Check the URL and ensure the service is running.", "error");
+    } finally {
+      setTestingConnection(false);
+    }
+  };
 
   const handleClearFiles = async () => {
     setClearing(true);
@@ -238,7 +291,75 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* SECTION 4: ABOUT */}
+        {/* SECTION 4: BACKEND CONNECTION (RENDER / REMOTE SERVER) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Server className="h-4 w-4 text-accent" />
+                <CardTitle>Backend Server (Render / API)</CardTitle>
+              </div>
+              {connectionStatus === "connected" && (
+                <Badge variant="success" size="sm">
+                  Connected
+                </Badge>
+              )}
+              {connectionStatus === "failed" && (
+                <Badge variant="error" size="sm">
+                  Offline / Unreachable
+                </Badge>
+              )}
+            </div>
+            <CardDescription>
+              Connect your Netlify frontend to your real Render backend running yt-dlp and ffmpeg.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-text-secondary">
+                Backend Server URL
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="url"
+                  placeholder="e.g. https://youtube-saver.onrender.com"
+                  value={backendUrl}
+                  onChange={(e) => {
+                    setBackendUrl(e.target.value);
+                    setConnectionStatus("idle");
+                  }}
+                  className="flex-1 h-9 px-3 rounded-lg bg-surface-elevated border border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent font-mono"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestBackendConnection}
+                  disabled={testingConnection}
+                  className="gap-1.5 shrink-0"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${testingConnection ? "animate-spin" : ""}`} />
+                  <span>{testingConnection ? "Testing..." : "Test Link"}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveBackendUrl}
+                  className="gap-1.5 shrink-0"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  <span>Save URL</span>
+                </Button>
+              </div>
+              <p className="text-xs text-text-muted">
+                Leave blank if running locally or hosting both frontend and backend on Render together.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* SECTION 5: ABOUT */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">

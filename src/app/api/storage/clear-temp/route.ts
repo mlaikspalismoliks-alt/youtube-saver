@@ -3,6 +3,10 @@ import { STORAGE_DIR } from "@/lib/server/media-engine";
 import fs from "fs";
 import path from "path";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function POST() {
   let freedBytes = 0;
 

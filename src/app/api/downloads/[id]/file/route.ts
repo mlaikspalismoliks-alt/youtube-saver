@@ -4,6 +4,10 @@ import fs from "fs";
 import path from "path";
 import { Readable } from "stream";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }

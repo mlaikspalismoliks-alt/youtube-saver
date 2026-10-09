@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { extractMediaInfo, isYouTubeUrl } from "@/lib/server/media-engine";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

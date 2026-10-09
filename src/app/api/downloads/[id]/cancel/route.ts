@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { jobStore } from "@/lib/server/job-store";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function POST(
   _req: Request,
   { params }: { params: { id: string } }

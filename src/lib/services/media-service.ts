@@ -22,8 +22,15 @@ import { mockFormats, mockDownloads, mockHistory } from "../mock-data";
 class MediaService {
   private history: HistoryItem[] = [...mockHistory];
 
-  private getApiUrl(path: string): string {
-    const base = process.env.NEXT_PUBLIC_API_URL || "";
+  public getApiUrl(path: string): string {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("backend_api_url");
+      if (stored && stored.trim()) {
+        const clean = stored.trim().replace(/\/+$/, "");
+        return `${clean}${path}`;
+      }
+    }
+    const base = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
     return `${base}${path}`;
   }
 

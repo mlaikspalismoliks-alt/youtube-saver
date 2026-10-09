@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { jobStore } from "@/lib/server/job-store";
 import fs from "fs";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }

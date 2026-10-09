@@ -3,6 +3,10 @@ import { jobStore, ActiveJobRecord } from "@/lib/server/job-store";
 import { startMediaDownload } from "@/lib/server/media-engine";
 import { DownloadItem } from "@/lib/types";
 
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function GET() {
   const jobs = Array.from(jobStore.values()).map((r) => r.item);
   return NextResponse.json({ success: true, downloads: jobs });
