@@ -9,8 +9,10 @@ import {
   History,
   Settings,
   ShieldCheck,
+  Play,
+  Zap,
   Radio,
-  Layers,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/context/WorkspaceContext";
@@ -23,7 +25,7 @@ export function Sidebar() {
 
   const navLinks = [
     {
-      name: "Home",
+      name: "Dashboard",
       href: "/",
       icon: DownloadCloud,
     },
@@ -54,19 +56,26 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-surface shrink-0 h-screen sticky top-0 z-30 select-none">
-      {/* Brand Header */}
-      <div className="p-6 pb-5 border-b border-border-subtle">
+    <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-surface/90 backdrop-blur-xl shrink-0 h-screen sticky top-0 z-30 select-none">
+      {/* Futuristic YouTube Brand Header */}
+      <div className="p-5 border-b border-border-subtle bg-gradient-to-b from-accent/5 to-transparent">
         <Link href="/" className="group flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-elevated border border-border group-hover:border-accent/60 transition-colors shadow-subtle">
-            <Layers className="h-4 w-4 text-accent" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 via-accent to-red-700 shadow-neon border border-red-400/40 group-hover:scale-105 transition-all duration-300">
+            <Play className="h-5 w-5 fill-white text-white translate-x-0.5 filter drop-shadow" />
+            <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div>
-            <div className="font-semibold text-sm tracking-wide text-text-primary">
-              MEDIAFLOW
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-base tracking-wider text-white">
+                YOU<span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-red-400">SAVER</span>
+              </span>
+              <span className="px-1 py-0.2 rounded bg-accent/20 border border-accent/40 text-[9px] font-mono font-bold text-accent">
+                HUD
+              </span>
             </div>
-            <div className="text-[11px] text-text-muted font-normal tracking-tight">
-              Private Media Workspace
+            <div className="text-[10px] text-text-muted font-mono tracking-tight flex items-center gap-1.5 mt-0.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              <span>CYBER YT ENGINE</span>
             </div>
           </div>
         </Link>

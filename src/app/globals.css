@@ -3,33 +3,33 @@
 @tailwind utilities;
 
 :root {
-  /* Core Dark SaaS Palette */
-  --background: 11 12 16;        /* #0b0c10 - Deep Charcoal Black */
-  --surface: 18 20 26;           /* #12141a - Refined Container Surface */
-  --surface-elevated: 25 28 36;  /* #191c24 - Elevated Surface (Cards, Dropdowns) */
-  --surface-hover: 32 36 46;     /* #20242e - Hover feedback */
+  /* YouTube Cyber Futuristic Palette */
+  --background: 10 10 14;        /* #0a0a0e - Deepest YouTube OLED Black */
+  --surface: 16 16 22;           /* #101016 - Cybernetic Dark Surface */
+  --surface-elevated: 24 24 32;  /* #181820 - Elevated Glass HUD Panel */
+  --surface-hover: 34 34 44;     /* #22222c - Cyber Hover State */
   
-  --border: 38 43 54;            /* #262b36 - Clean subtle border */
-  --border-subtle: 26 30 39;     /* #1a1e27 - Secondary divider */
-  --border-focus: 80 115 250;    /* #5073fa - Focus ring */
+  --border: 38 38 50;            /* #262632 - Tech Grid Border */
+  --border-subtle: 24 24 32;     /* #181820 - Ambient Separator */
+  --border-focus: 255 0 51;      /* #ff0033 - YouTube Cyber Neon Red */
 
-  --text-primary: 245 246 248;   /* High contrast crisp white */
-  --text-secondary: 156 163 175; /* Slate secondary */
-  --text-muted: 100 108 123;     /* Tertiary metadata */
+  --text-primary: 250 250 252;   /* High-contrast pure luminescent white */
+  --text-secondary: 165 170 185; /* Cyber silver metallic */
+  --text-muted: 105 110 128;     /* Tech dark readout */
 
-  /* Restrained Professional Accent - easily customizable */
-  --accent: 80 115 250;          /* Clean Technical Indigo */
-  --accent-hover: 106 137 252;
-  --accent-muted: 24 33 66;
+  /* Futuristic YouTube Crimson & Red Glow */
+  --accent: 255 0 51;            /* #ff0033 - YouTube Cyber Red */
+  --accent-hover: 255 46 88;     /* #ff2e58 - Glowing Crimson */
+  --accent-muted: 50 10 20;      /* #320a14 - Subdued Ruby Neon */
   --accent-foreground: 255 255 255;
 
   /* Status Colors */
-  --success: 34 197 94;
-  --success-muted: 20 46 30;
-  --warning: 234 179 8;
-  --warning-muted: 48 38 15;
-  --error: 244 63 94;
-  --error-muted: 48 18 24;
+  --success: 16 185 129;         /* Cyber Emerald */
+  --success-muted: 16 46 32;
+  --warning: 245 158 11;         /* Neon Amber */
+  --warning-muted: 48 34 14;
+  --error: 255 0 51;             /* YouTube Red Alert */
+  --error-muted: 50 10 20;
 }
 
 @layer base {
@@ -49,23 +49,51 @@
     min-height: 100vh;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     overflow-x: hidden;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 0, 51, 0.12), transparent 70%),
+      radial-gradient(circle at 100% 100%, rgba(255, 0, 51, 0.05), transparent 40%);
+    background-attachment: fixed;
   }
 
-  /* Custom subtle scrollbar */
+  /* Custom YouTube Red scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(10, 10, 14, 0.8);
   }
   ::-webkit-scrollbar-thumb {
-    background: rgb(var(--border));
-    border-radius: 3px;
+    background: rgba(255, 0, 51, 0.3);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--text-muted));
+    background: rgba(255, 0, 51, 0.7);
   }
+}
+
+/* Futuristic Glow & HUD Utilities */
+.glow-red {
+  box-shadow: 0 0 25px -3px rgba(255, 0, 51, 0.35);
+}
+
+.glow-red-lg {
+  box-shadow: 0 0 45px -5px rgba(255, 0, 51, 0.5);
+}
+
+.glow-red-text {
+  text-shadow: 0 0 12px rgba(255, 0, 51, 0.6);
+}
+
+.cyber-glass {
+  background: rgba(18, 18, 24, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cyber-glass:hover {
+  border-color: rgba(255, 0, 51, 0.3);
 }
 
 /* Skeleton Shimmer */
@@ -81,9 +109,9 @@
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 0, 51, 0.08) 50%,
+    rgba(255, 255, 255, 0.02) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;

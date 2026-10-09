@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Menu,
   X,
+  Play,
   Layers,
   Radio,
 } from "lucide-react";
@@ -64,17 +65,17 @@ export function MobileNav() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-surface/95 backdrop-blur-md border-b border-border">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-surface/90 backdrop-blur-xl border-b border-border/80">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-elevated border border-border">
-            <Layers className="h-4 w-4 text-accent" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-700 shadow-neon border border-red-400/40">
+            <Play className="h-4 w-4 fill-white text-white translate-x-0.5" />
           </div>
           <div>
-            <span className="font-semibold text-xs tracking-wider text-text-primary uppercase">
-              MEDIAFLOW
+            <span className="font-extrabold text-xs tracking-wider text-white">
+              YOU<span className="text-accent">SAVER</span>
             </span>
-            <span className="block text-[10px] text-text-muted font-normal">
-              Private Workspace
+            <span className="block text-[9px] text-accent/80 font-mono">
+              CYBER YT ENGINE
             </span>
           </div>
         </Link>
@@ -107,12 +108,12 @@ export function MobileNav() {
           <div className="relative ml-auto w-full max-w-xs bg-surface h-full flex flex-col border-l border-border shadow-elevated p-5 z-10 animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-elevated border border-border">
-                  <Layers className="h-4 w-4 text-accent" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-700 shadow-neon border border-red-400/40">
+                  <Play className="h-4 w-4 fill-white text-white translate-x-0.5" />
                 </div>
                 <div>
-                  <div className="font-semibold text-xs text-text-primary">MEDIAFLOW</div>
-                  <div className="text-[10px] text-text-muted">Private Workspace</div>
+                  <div className="font-extrabold text-xs text-white">YOU<span className="text-accent">SAVER</span></div>
+                  <div className="text-[10px] text-accent/80 font-mono">CYBER YT ENGINE</div>
                 </div>
               </div>
               <button

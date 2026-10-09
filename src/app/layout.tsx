@@ -16,18 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "youtube saver — Private Media Workspace",
-  description: "A professional internal media workspace for processing and managing company-owned or authorized media content.",
-  applicationName: "MEDIAFLOW",
-  keywords: ["media workspace", "internal media downloader", "authorized video processor"],
-  authors: [{ name: "Media Engineering Team" }],
+  title: "YOUSAVER — Cyber YouTube Media Engine",
+  description: "Next-generation futuristic YouTube video & MP3 audio stream extractor and downloader.",
+  applicationName: "YOUSAVER",
+  keywords: ["youtube downloader", "youtube 4k", "mp3 extractor", "cyber media engine"],
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#0b0c10",
+  themeColor: "#0a0a0e",
   colorScheme: "dark",
 };
 

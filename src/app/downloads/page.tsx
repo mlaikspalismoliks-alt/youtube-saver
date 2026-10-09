@@ -42,11 +42,12 @@ export default function DownloadsPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-              Downloads
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-accent animate-ping" />
+              <span>Downloads Queue HUD</span>
             </h1>
-            <p className="text-sm text-text-secondary mt-1">
-              Monitor your active and completed media jobs.
+            <p className="text-xs sm:text-sm text-text-secondary mt-1 font-mono">
+              Live telemetry and completed YouTube extractions
             </p>
           </div>
 

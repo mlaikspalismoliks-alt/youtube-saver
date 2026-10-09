@@ -51,11 +51,12 @@ export default function HistoryPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-            History
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+            <span>Extraction Archive</span>
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Previously processed media.
+          <p className="text-xs sm:text-sm text-text-secondary mt-1 font-mono">
+            Historical YouTube audio and video extraction logs
           </p>
         </div>
 

@@ -31,19 +31,22 @@ export default function DownloaderPage() {
     currentMedia?.availableFormats[0];
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+    <div className="relative w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      {/* Ambient Cyber Neon Glow */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-accent/15 blur-[120px] rounded-full pointer-events-none -z-10" />
+
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* Workspace Title & Description */}
-        <div className="space-y-2 text-center sm:text-left">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated border border-border text-[11px] font-mono text-text-secondary mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            <span>YouTube Workspace Engine</span>
+        {/* Futuristic Cyber YouTube Title */}
+        <div className="space-y-3 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-[11px] font-mono text-accent shadow-neon mb-1">
+            <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
+            <span className="font-bold tracking-widest uppercase">YouTube Quantum Engine v2.0</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-            Download YouTube media
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+            Download Any <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-red-400 filter drop-shadow">YouTube Media</span>
           </h1>
-          <p className="text-sm text-text-secondary max-w-xl leading-relaxed">
-            Process, extract, and download YouTube video and audio content from your private workspace.
+          <p className="text-sm sm:text-base text-text-secondary max-w-xl leading-relaxed">
+            Ultra-fast high-definition video extraction & studio-grade 320kbps MP3 conversion powered by cloud stream processing.
           </p>
         </div>
 

@@ -373,11 +373,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-3 pt-2">
             <div className="flex items-center justify-between text-xs py-1.5 border-b border-border-subtle">
               <span className="text-text-muted">Application</span>
-              <span className="text-text-primary font-semibold">MEDIAFLOW</span>
+              <span className="text-text-primary font-semibold">YOUSAVER</span>
             </div>
             <div className="flex items-center justify-between text-xs py-1.5 border-b border-border-subtle">
               <span className="text-text-muted">Subsystem</span>
-              <span className="text-text-secondary">Private Media Workspace</span>
+              <span className="text-text-secondary">Cyber YouTube Media Engine</span>
             </div>
             <div className="flex items-center justify-between text-xs py-1.5">
               <span className="text-text-muted">Version</span>

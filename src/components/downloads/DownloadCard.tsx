@@ -68,22 +68,22 @@ export function DownloadCard({
   };
 
   return (
-    <div className="rounded-xl border border-border bg-surface hover:border-border-focus/40 p-4 transition-all space-y-3.5 shadow-subtle">
+    <div className="rounded-2xl border border-white/10 bg-surface/90 backdrop-blur-xl hover:border-accent/40 p-4 transition-all duration-300 space-y-3.5 shadow-card hover:shadow-neon">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         {/* Thumbnail and Title */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          <div className="relative w-20 h-14 rounded-lg overflow-hidden bg-surface-elevated border border-border/80 shrink-0">
+          <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-surface-elevated border border-white/10 shadow-sm shrink-0 group">
             {!imageError ? (
               <Image
                 src={item.thumbnailUrl}
                 alt={item.title}
                 fill
-                sizes="80px"
-                className="object-cover"
+                sizes="96px"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
                 onError={() => setImageError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-surface-elevated text-text-muted">
+              <div className="w-full h-full flex items-center justify-center bg-surface-elevated text-accent">
                 <Film className="h-5 w-5" />
               </div>
             )}
@@ -92,25 +92,25 @@ export function DownloadCard({
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-2">
               {getStatusBadge()}
-              <span className="text-[11px] font-mono text-text-muted">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-elevated text-text-muted border border-white/5 uppercase">
                 {item.source}
               </span>
             </div>
-            <h4 className="text-sm font-semibold text-text-primary truncate">
+            <h4 className="text-sm font-bold text-white truncate">
               {item.title}
             </h4>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-text-secondary">
-              <span>{item.quality}</span>
-              <span>·</span>
-              <span>{item.format}</span>
+              <span className="text-accent font-semibold">{item.quality}</span>
+              <span>•</span>
+              <span className="text-white">{item.format}</span>
               {item.resolution && (
                 <>
-                  <span>·</span>
+                  <span>•</span>
                   <span className="text-text-muted">{item.resolution}</span>
                 </>
               )}
-              <span>·</span>
-              <span>{item.size}</span>
+              <span>•</span>
+              <span className="text-text-muted">{item.size}</span>
             </div>
           </div>
         </div>
@@ -120,19 +120,19 @@ export function DownloadCard({
           {item.status === "completed" && (
             <>
               <Button
-                variant="secondary"
+                variant="primary"
                 size="sm"
                 onClick={handleDownloadFile}
-                className="gap-1.5 text-xs h-8"
+                className="gap-1.5 text-xs h-8 font-bold px-3 shadow-neon"
               >
-                <Download className="h-3.5 w-3.5 text-accent" />
-                <span>Download</span>
+                <Download className="h-3.5 w-3.5" />
+                <span>Save</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(item.id)}
-                className="text-text-muted hover:text-error h-8 px-2"
+                className="text-text-muted hover:text-accent h-8 px-2"
                 aria-label="Delete download"
               >
                 <Trash2 className="h-3.5 w-3.5" />

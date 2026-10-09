@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ShieldCheck, Layers, Lock, Cpu, Globe, ArrowRight } from "lucide-react";
+import { ShieldCheck, Play, Lock, Cpu, Globe, ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
@@ -9,21 +9,21 @@ export default function AboutPage() {
       <div className="max-w-2xl mx-auto space-y-10">
         {/* Brand header */}
         <div className="text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-elevated border border-border shadow-elevated">
-            <Layers className="h-7 w-7 text-accent" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-accent to-red-700 border border-red-400/40 shadow-neon">
+            <Play className="h-8 w-8 fill-white text-white translate-x-0.5 filter drop-shadow" />
           </div>
 
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-              MEDIAFLOW
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              YOU<span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-red-400">SAVER</span>
             </h1>
-            <p className="text-xs uppercase tracking-widest text-accent font-mono mt-1 font-semibold">
-              Private Media Workspace
+            <p className="text-xs uppercase tracking-widest text-accent font-mono mt-1 font-bold">
+              Cyber YouTube Media Engine
             </p>
           </div>
 
           <p className="text-sm text-text-secondary leading-relaxed max-w-lg mx-auto">
-            A private workspace for managing authorized company media. Built for internal production teams to ingest, inspect, and syndicate company-owned digital assets.
+            High-performance direct YouTube stream extraction and audio demuxing platform. Built for instant 4K, 1080p video downloads and high-fidelity 320kbps MP3 audio processing.
           </p>
         </div>
 

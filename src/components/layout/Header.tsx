@@ -21,34 +21,34 @@ export function Header() {
       case "/settings":
         return { title: "Workspace Settings", section: "System" };
       case "/about":
-        return { title: "About MediaFlow", section: "System" };
+        return { title: "About YouSaver", section: "System" };
       default:
-        return { title: "MediaFlow", section: "Workspace" };
+        return { title: "YouSaver", section: "Workspace" };
     }
   };
 
   const { title, section } = getPageInfo();
 
   return (
-    <header className="hidden lg:flex items-center justify-between h-14 px-8 border-b border-border bg-surface/50 backdrop-blur-sm sticky top-0 z-20">
+    <header className="hidden lg:flex items-center justify-between h-14 px-8 border-b border-border/80 bg-surface/80 backdrop-blur-xl sticky top-0 z-20">
       <div className="flex items-center gap-2 text-xs">
-        <span className="text-text-muted">{section}</span>
-        <span className="text-text-muted">/</span>
-        <span className="text-text-primary font-medium">{title}</span>
+        <span className="text-text-muted font-mono">{section}</span>
+        <span className="text-accent/60 font-mono">/</span>
+        <span className="text-text-primary font-semibold tracking-wide">{title}</span>
       </div>
 
-      <div className="flex items-center gap-4 text-xs">
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-surface border border-border text-text-secondary">
+      <div className="flex items-center gap-3 text-xs">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-accent font-mono">
+          <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
+          <span className="font-semibold text-[11px] tracking-wider">LIVE YT STREAM ENGINE</span>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-border text-text-secondary font-mono">
           <HardDrive className="h-3.5 w-3.5 text-text-muted" />
-          <span>Storage:</span>
+          <span>DISK:</span>
           <span className="font-mono text-text-primary">
             {formatBytes(settings.storageUsedBytes)} / {formatBytes(settings.storageMaxBytes)}
           </span>
-        </div>
-
-        <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-surface border border-border text-text-secondary">
-          <Shield className="h-3.5 w-3.5 text-accent" />
-          <span>Internal Access Verified</span>
         </div>
       </div>
     </header>

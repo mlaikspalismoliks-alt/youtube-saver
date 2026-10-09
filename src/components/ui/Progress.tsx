@@ -16,20 +16,20 @@ export function Progress({ value, animated = true, className, ...props }: Progre
       aria-valuemin={0}
       aria-valuemax={100}
       className={cn(
-        "relative h-2 w-full overflow-hidden rounded-full bg-surface-elevated border border-border-subtle",
+        "relative h-2.5 w-full overflow-hidden rounded-full bg-surface-elevated border border-white/10 shadow-inner",
         className
       )}
       {...props}
     >
       <div
         className={cn(
-          "h-full bg-accent transition-all duration-300 ease-out rounded-full",
+          "h-full bg-gradient-to-r from-red-600 via-accent to-rose-400 shadow-neon transition-all duration-300 ease-out rounded-full",
           animated && "relative overflow-hidden"
         )}
         style={{ width: `${clampedValue}%` }}
       >
         {animated && clampedValue > 0 && clampedValue < 100 && (
-          <div className="absolute inset-0 bg-white/20 skeleton-shimmer" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skeleton-shimmer" />
         )}
       </div>
     </div>
