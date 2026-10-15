@@ -9,6 +9,7 @@ import { Film, Trash2, Download, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 import { triggerMediaDownload } from "@/lib/utils";
+import { mediaService } from "@/lib/services/media-service";
 
 interface HistoryCardProps {
   item: HistoryItem;
@@ -21,8 +22,21 @@ export function HistoryCard({ item, onDelete }: HistoryCardProps) {
 
   const handleDownloadCopy = async () => {
     showToast(`Downloading ${item.format} file for ${item.title.substring(0, 20)}...`, "info");
-    await triggerMediaDownload(item.title, item.format);
-    showToast(`Finished saving ${item.title.substring(0, 20)}.${item.format.toLowerCase()}`, "success");
+    if (item.downloadId && item.downloadId.startsWith("dl-")) {
+      const fileUrl = mediaService.getApiUrl(`/api/downloads/${item.downloadId}/file`);
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.setAttribute("download", "");
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Finished saving ${item.title.substring(0, 20)}.${item.format.toLowerCase()}`, "success");
+    } else {
+      await triggerMediaDownload(item.title, item.format);
+      showToast(`Finished saving ${item.title.substring(0, 20)}.${item.format.toLowerCase()}`, "success");
+    }
   };
 
   return (

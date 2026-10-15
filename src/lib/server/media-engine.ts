@@ -1,4 +1,4 @@
-import { spawn, ChildProcess, execSync } from "child_process";
+import { spawn, ChildProcess, execSync, spawnSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -190,15 +190,42 @@ function getYtDlpExecution(): { command: string; baseArgs: string[] } {
   return { command: PYTHON_CMD, baseArgs: ["-m", "yt_dlp", ...commonArgs] };
 }
 
-// Locate static ffmpeg binary installed in node_modules
-let ffmpegBinaryPath = "";
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const ffmpegStatic = require("ffmpeg-static");
-  ffmpegBinaryPath = typeof ffmpegStatic === "string" ? ffmpegStatic : "";
-} catch {
-  ffmpegBinaryPath = "";
+/**
+ * Resolves the ffmpeg executable across local development, Windows, Linux containers, and Docker.
+ */
+export function getFfmpegPath(): string {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const ffmpegStatic = require("ffmpeg-static");
+    if (typeof ffmpegStatic === "string" && fs.existsSync(ffmpegStatic)) {
+      return ffmpegStatic;
+    }
+  } catch {}
+
+  const candidatePaths = [
+    "/usr/bin/ffmpeg",
+    "/usr/local/bin/ffmpeg",
+    path.join(process.cwd(), "ffmpeg"),
+    path.join(process.cwd(), "ffmpeg.exe"),
+  ];
+
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  try {
+    const cmd = os.platform() === "win32" ? "where ffmpeg" : "which ffmpeg";
+    const out = execSync(cmd, { stdio: ["pipe", "pipe", "ignore"] })
+      .toString()
+      .trim()
+      .split(/[\r\n]+/)[0];
+    if (out && fs.existsSync(out)) return out;
+  } catch {}
+
+  return "";
 }
+
+const ffmpegBinaryPath = getFfmpegPath();
 
 /**
  * Validates that a URL is strictly from YouTube
@@ -579,7 +606,7 @@ export function startMediaDownload(
     throw new Error("Only YouTube URLs are permitted for download.");
   }
 
-  const isAudio = formatId.includes("audio");
+  const isAudio = formatId.toLowerCase().includes("audio") || formatId.toLowerCase().includes("mp3");
   const ext = isAudio ? "mp3" : "mp4";
   const outputTemplate = path.join(STORAGE_DIR, `${jobId}.%(ext)s`);
 
@@ -591,37 +618,32 @@ export function startMediaDownload(
     "--no-check-certificates",
   ];
 
-  if (ffmpegBinaryPath) {
-    args.push("--ffmpeg-location", ffmpegBinaryPath);
+  const ffmpeg = getFfmpegPath();
+  if (ffmpeg) {
+    args.push("--ffmpeg-location", ffmpeg);
   }
 
   if (isAudio) {
     args.push("-x", "--audio-format", "mp3", "--audio-quality", "0");
   } else {
-    if (formatId.includes("1080p")) {
-      args.push(
-        "-f",
-        "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best[ext=mp4]/best",
-        "--merge-output-format",
-        "mp4"
-      );
-    } else if (formatId.includes("720p")) {
-      args.push(
-        "-f",
-        "bestvideo[height<=720]+bestaudio/best[height<=720]/best[ext=mp4]/best",
-        "--merge-output-format",
-        "mp4"
-      );
-    } else if (formatId.includes("480p")) {
-      args.push(
-        "-f",
-        "bestvideo[height<=480]+bestaudio/best[height<=480]/best[ext=mp4]/best",
-        "--merge-output-format",
-        "mp4"
-      );
-    } else {
-      args.push("-f", "bestvideo+bestaudio/best[ext=mp4]/best", "--merge-output-format", "mp4");
-    }
+    // Determine target resolution from formatId
+    let targetHeight = 1080;
+    if (formatId.includes("720p")) targetHeight = 720;
+    else if (formatId.includes("480p")) targetHeight = 480;
+    else if (formatId.includes("1080p")) targetHeight = 1080;
+
+    // Prioritize standard H.264 video codec and AAC/m4a audio codec
+    // This prevents YouTube from delivering AV1 or VP9 video streams
+    // which cause default players (Windows Media Player, QuickTime, iOS, TV)
+    // to play only audio and display a black screen.
+    args.push(
+      "-S",
+      `vcodec:h264,res:${targetHeight},acodec:m4a`,
+      "-f",
+      `bestvideo[height<=${targetHeight}][vcodec^=avc]+bestaudio[acodec^=mp4a]/bestvideo[height<=${targetHeight}][vcodec^=avc]+bestaudio/bestvideo[height<=${targetHeight}]+bestaudio[acodec^=mp4a]/bestvideo[height<=${targetHeight}]+bestaudio/best[height<=${targetHeight}]/best`,
+      "--merge-output-format",
+      "mp4"
+    );
   }
 
   args.push("-o", outputTemplate, url.trim());
@@ -657,14 +679,95 @@ export function startMediaDownload(
   py.on("close", (code) => {
     if (code === 0) {
       let finalFile = path.join(STORAGE_DIR, `${jobId}.${ext}`);
+      
       if (!fs.existsSync(finalFile)) {
-        // Fallback: locate any output file starting with jobId prefix
+        // Fallback: locate output file starting with jobId prefix
         const files = fs.readdirSync(STORAGE_DIR);
-        const match = files.find((f) => f.startsWith(`${jobId}.`));
-        if (match) {
-          finalFile = path.join(STORAGE_DIR, match);
+        // Exclude temporary or split format fragments (.f140, .part, .ytdl, etc.)
+        const validFiles = files.filter(
+          (f) =>
+            f.startsWith(`${jobId}.`) &&
+            !f.endsWith(".part") &&
+            !f.endsWith(".ytdl") &&
+            !f.endsWith(".temp") &&
+            !f.includes(".f")
+        );
+
+        if (isAudio) {
+          const audioMatch = validFiles.find((f) => f.endsWith(".mp3") || f.endsWith(".m4a") || f.endsWith(".aac"));
+          if (audioMatch) finalFile = path.join(STORAGE_DIR, audioMatch);
+        } else {
+          const videoMatch = validFiles.find((f) => f.endsWith(".mp4") || f.endsWith(".mkv") || f.endsWith(".webm"));
+          if (videoMatch) finalFile = path.join(STORAGE_DIR, videoMatch);
+        }
+
+        // Last resort fallback
+        if (!fs.existsSync(finalFile) && validFiles.length > 0) {
+          finalFile = path.join(STORAGE_DIR, validFiles[0]);
         }
       }
+
+      if (!fs.existsSync(finalFile)) {
+        onError("Download completed but media file could not be located on disk.");
+        return;
+      }
+
+      // If user requested video, verify that the file actually contains a video track
+      // and ensure codecs are compatible (H.264 + AAC)
+      if (!isAudio && ffmpeg && fs.existsSync(ffmpeg)) {
+        try {
+          const probe = spawnSync(ffmpeg, ["-i", finalFile], { encoding: "utf8" });
+          const probeOut = probe.stderr || "";
+          const hasVideo = /Stream #.*Video:/i.test(probeOut);
+          const hasH264 = /Stream #.*Video:.*(h264|avc1)/i.test(probeOut);
+          const hasAac = /Stream #.*Audio:.*(aac|mp4a)/i.test(probeOut);
+
+          if (!hasVideo) {
+            onError("Downloaded stream contains no video track. Please select another format or quality.");
+            return;
+          }
+
+          // If the video is in AV1/VP9 or audio is Opus, normalize to universal H.264 + AAC MP4
+          if (!hasH264 || !hasAac || !finalFile.endsWith(".mp4")) {
+            const tempNormalized = path.join(STORAGE_DIR, `${jobId}_norm.mp4`);
+            const vArgs = hasH264 ? ["-c:v", "copy"] : ["-c:v", "libx264", "-preset", "veryfast", "-crf", "22"];
+            const aArgs = hasAac ? ["-c:a", "copy"] : ["-c:a", "aac", "-b:a", "192k"];
+
+            const convertRes = spawnSync(
+              ffmpeg,
+              ["-y", "-i", finalFile, ...vArgs, ...aArgs, "-movflags", "+faststart", tempNormalized],
+              { stdio: "ignore" }
+            );
+
+            if (convertRes.status === 0 && fs.existsSync(tempNormalized) && fs.statSync(tempNormalized).size > 1000) {
+              try { fs.unlinkSync(finalFile); } catch {}
+              const normalizedFinal = path.join(STORAGE_DIR, `${jobId}.mp4`);
+              try {
+                if (fs.existsSync(normalizedFinal)) fs.unlinkSync(normalizedFinal);
+                fs.renameSync(tempNormalized, normalizedFinal);
+                finalFile = normalizedFinal;
+              } catch {
+                finalFile = tempNormalized;
+              }
+            }
+          }
+        } catch (normErr) {
+          console.warn("Stream normalization non-fatal warning:", normErr);
+        }
+      }
+
+      // Clean up any remaining partials or separate stream files for this jobId
+      try {
+        const remaining = fs.readdirSync(STORAGE_DIR);
+        for (const f of remaining) {
+          if (f.startsWith(`${jobId}.`) && f !== path.basename(finalFile)) {
+            if (f.includes(".f") || f.endsWith(".part") || f.endsWith(".ytdl") || f.endsWith(".temp")) {
+              try { fs.unlinkSync(path.join(STORAGE_DIR, f)); } catch {}
+            }
+          }
+        }
+      } catch {}
+
       onComplete(finalFile);
     } else {
       onError(cleanYtDlpError(stderrOutput || `Download failed with exit code ${code}`));

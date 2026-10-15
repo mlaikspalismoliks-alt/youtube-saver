@@ -71,6 +71,7 @@ export interface DownloadItem {
 export interface HistoryItem {
   id: string;
   mediaId: string;
+  downloadId?: string;
   title: string;
   source: MediaSource;
   format: string;

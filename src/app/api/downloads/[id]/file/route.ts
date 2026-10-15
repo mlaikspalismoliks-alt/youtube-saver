@@ -18,13 +18,38 @@ export async function GET(
 
   let filePath = record?.actualFilePath;
 
+  const isAudioJob = record?.item?.format?.toLowerCase().includes("mp3");
+  const preferredExt = isAudioJob ? ".mp3" : ".mp4";
+
   // Fallback: Check if file exists on disk if memory record is missing or path not recorded
   if (!filePath || !fs.existsSync(filePath)) {
     if (fs.existsSync(storageDir)) {
-      const files = fs.readdirSync(storageDir);
-      const match = files.find((f) => f.startsWith(`${id}.`));
-      if (match) {
-        filePath = path.join(storageDir, match);
+      const exactCandidate = path.join(storageDir, `${id}${preferredExt}`);
+      if (fs.existsSync(exactCandidate)) {
+        filePath = exactCandidate;
+      } else {
+        const files = fs.readdirSync(storageDir);
+        // Exclude temporary or partial files (.part, .ytdl, .temp, .f140, etc.)
+        const validFiles = files.filter(
+          (f) =>
+            f.startsWith(`${id}.`) &&
+            !f.endsWith(".part") &&
+            !f.endsWith(".ytdl") &&
+            !f.endsWith(".temp") &&
+            !f.includes(".f")
+        );
+
+        if (isAudioJob) {
+          const audioMatch = validFiles.find((f) => f.endsWith(".mp3") || f.endsWith(".m4a") || f.endsWith(".aac"));
+          if (audioMatch) filePath = path.join(storageDir, audioMatch);
+        } else {
+          const videoMatch = validFiles.find((f) => f.endsWith(".mp4") || f.endsWith(".mkv") || f.endsWith(".webm"));
+          if (videoMatch) filePath = path.join(storageDir, videoMatch);
+        }
+
+        if (!filePath && validFiles.length > 0) {
+          filePath = path.join(storageDir, validFiles[0]);
+        }
       }
     }
   }
@@ -42,8 +67,16 @@ export async function GET(
 
   const rawTitle = record?.item?.title || "media";
   const cleanTitle = rawTitle.replace(/[^a-zA-Z0-9_-]/g, "_").replace(/_+/g, "_");
-  const ext = path.extname(fileName) || ".mp4";
+  const ext = path.extname(fileName) || preferredExt;
   const downloadFileName = `${cleanTitle}${ext}`;
+
+  // Accurate MIME type mapping
+  let contentType = "application/octet-stream";
+  const lowerExt = ext.toLowerCase();
+  if (lowerExt === ".mp4") contentType = "video/mp4";
+  else if (lowerExt === ".mp3") contentType = "audio/mpeg";
+  else if (lowerExt === ".m4a") contentType = "audio/mp4";
+  else if (lowerExt === ".webm") contentType = "video/webm";
 
   // Stream file as attachment
   const headers = new Headers();
@@ -51,10 +84,7 @@ export async function GET(
     "Content-Disposition",
     `attachment; filename="${downloadFileName}"; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
   );
-  headers.set(
-    "Content-Type",
-    ext.toLowerCase() === ".mp3" ? "audio/mpeg" : "video/mp4"
-  );
+  headers.set("Content-Type", contentType);
   headers.set("Content-Length", fileStat.size.toString());
 
   // Web Streams compliant stream

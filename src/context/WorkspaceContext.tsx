@@ -180,6 +180,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           const newHistoryItem: HistoryItem = {
             id: `hist-${Date.now()}`,
             mediaId: currentMedia.id,
+            downloadId: jobId,
             title: currentMedia.title,
             source: currentMedia.source,
             format: chosenFormat.container,
