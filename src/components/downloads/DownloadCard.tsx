@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Progress } from "@/components/ui/Progress";
 import { formatBytes, triggerMediaDownload } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
+import { mediaService } from "@/lib/services/media-service";
 
 interface DownloadCardProps {
   item: DownloadItem;
@@ -54,9 +55,12 @@ export function DownloadCard({
   const handleDownloadFile = async () => {
     showToast(`Downloading file: ${item.title.substring(0, 24)}...`, "info");
     if (item.id && item.id.startsWith("dl-")) {
+      const fileUrl = mediaService.getApiUrl(`/api/downloads/${item.id}/file`);
       const link = document.createElement("a");
-      link.href = `/api/downloads/${item.id}/file`;
+      link.href = fileUrl;
       link.setAttribute("download", "");
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

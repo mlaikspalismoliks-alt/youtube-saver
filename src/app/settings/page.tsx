@@ -19,8 +19,12 @@ import {
   Globe,
   RefreshCw,
   ExternalLink,
+  KeyRound,
+  ShieldCheck,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { mediaService } from "@/lib/services/media-service";
 
 export default function SettingsPage() {
   const { settings, updateSettings, clearTempStorage } = useWorkspace();
@@ -30,6 +34,20 @@ export default function SettingsPage() {
   const [backendUrl, setBackendUrl] = React.useState("");
   const [testingConnection, setTestingConnection] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connected" | "failed">("idle");
+
+  const [cookieStatus, setCookieStatus] = React.useState<{ hasCookies: boolean; source: string }>({
+    hasCookies: false,
+    source: "none",
+  });
+  const [cookiesInput, setCookiesInput] = React.useState("");
+  const [savingCookies, setSavingCookies] = React.useState(false);
+  const [deletingCookies, setDeletingCookies] = React.useState(false);
+
+  React.useEffect(() => {
+    mediaService.getCookieStatus().then((status) => {
+      setCookieStatus(status);
+    });
+  }, []);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -78,6 +96,47 @@ export default function SettingsPage() {
     setClearing(true);
     await clearTempStorage();
     setClearing(false);
+  };
+
+  const handleSaveCookies = async () => {
+    if (!cookiesInput.trim()) {
+      showToast("Please paste cookie data first.", "error");
+      return;
+    }
+    setSavingCookies(true);
+    try {
+      const res = await mediaService.saveCookies(cookiesInput.trim());
+      if (res.success) {
+        showToast("YouTube cookies saved and activated successfully!", "success");
+        setCookiesInput("");
+        const updated = await mediaService.getCookieStatus();
+        setCookieStatus(updated);
+      } else {
+        showToast(res.message || "Failed to save cookies.", "error");
+      }
+    } catch {
+      showToast("Network error while saving cookies.", "error");
+    } finally {
+      setSavingCookies(false);
+    }
+  };
+
+  const handleDeleteCookies = async () => {
+    setDeletingCookies(true);
+    try {
+      const res = await mediaService.deleteCookies();
+      if (res.success) {
+        showToast("Cookies removed from storage.", "info");
+        const updated = await mediaService.getCookieStatus();
+        setCookieStatus(updated);
+      } else {
+        showToast(res.message || "Failed to delete cookies.", "error");
+      }
+    } catch {
+      showToast("Network error while deleting cookies.", "error");
+    } finally {
+      setDeletingCookies(false);
+    }
   };
 
   const storagePercentage = Math.round(
@@ -291,7 +350,87 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* SECTION 4: BACKEND CONNECTION (RENDER / REMOTE SERVER) */}
+        {/* SECTION 4: YOUTUBE ANTI-BOT & AUTHENTICATION (COOKIES) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-accent" />
+                <CardTitle>YouTube Authentication & Anti-Bot Bypass</CardTitle>
+              </div>
+              {cookieStatus.hasCookies ? (
+                <Badge variant="success" size="sm">
+                  Active ({cookieStatus.source === "environment" ? "Env Var" : "Cookies File"})
+                </Badge>
+              ) : (
+                <Badge variant="neutral" size="sm">
+                  No Cookies Configured
+                </Badge>
+              )}
+            </div>
+            <CardDescription>
+              Bypass YouTube bot verification and &ldquo;Sign in to confirm you&apos;re not a bot&rdquo; errors on cloud hosting (Render/AWS).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <div className="p-3.5 rounded-xl bg-surface-elevated/80 border border-white/10 text-xs space-y-2">
+              <div className="flex items-center gap-2 text-text-primary font-semibold">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span>How to bypass YouTube bot detection:</span>
+              </div>
+              <ol className="list-decimal list-inside space-y-1.5 text-text-secondary leading-relaxed pl-1">
+                <li>Install the free extension <span className="text-white font-medium">&ldquo;Get cookies.txt LOCALLY&rdquo;</span> (available on Chrome Web Store &amp; Firefox Add-ons).</li>
+                <li>Visit <span className="text-white font-medium">youtube.com</span> in your browser while signed into YouTube.</li>
+                <li>Open the extension and click <span className="text-white font-medium">&ldquo;Export&rdquo;</span> to copy or download your Netscape-formatted cookies.</li>
+                <li>Paste the contents below and click <span className="text-white font-medium">&ldquo;Save &amp; Activate Cookies&rdquo;</span>, or add it as an Environment Variable named <span className="font-mono text-accent">YOUTUBE_COOKIES</span> in your Render dashboard.</li>
+              </ol>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
+                  <FileText className="h-3.5 w-3.5 text-text-muted" />
+                  <span>Paste cookies.txt content</span>
+                </label>
+                {cookieStatus.hasCookies && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeleteCookies}
+                    disabled={deletingCookies}
+                    className="h-7 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-1 px-2"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>Clear Saved Cookies</span>
+                  </Button>
+                )}
+              </div>
+              <textarea
+                rows={4}
+                value={cookiesInput}
+                onChange={(e) => setCookiesInput(e.target.value)}
+                placeholder="# Netscape HTTP Cookie File&#10;.youtube.com  TRUE  /  TRUE  1799999999  LOGIN_INFO  ..."
+                className="w-full p-3 rounded-lg bg-surface-elevated border border-border text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent font-mono leading-relaxed resize-y"
+              />
+              <div className="flex justify-end pt-1">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveCookies}
+                  disabled={savingCookies || !cookiesInput.trim()}
+                  className="gap-1.5 font-mono text-xs"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  <span>{savingCookies ? "Saving..." : "Save & Activate Cookies"}</span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* SECTION 5: BACKEND CONNECTION (RENDER / REMOTE SERVER) */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

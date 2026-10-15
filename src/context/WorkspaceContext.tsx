@@ -159,11 +159,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
     // Polling interval checking real backend progress
     let simulatedSteps = 0;
+    let consecutiveErrors = 0;
     progressTimerRef.current = setInterval(async () => {
       simulatedSteps++;
       const serverStatus = await mediaService.getDownloadStatus(jobId);
 
       if (serverStatus) {
+        consecutiveErrors = 0;
         setActiveJob(serverStatus);
         setDownloaderProgress(serverStatus.progress);
         setDownloads((prev) =>
@@ -197,14 +199,26 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           showToast("Download failed.", "error");
         }
       } else {
-        // Fallback simulation step if running offline
-        if (simulatedSteps >= 18) {
-          clearTimer();
-          setDownloaderStatus("completed");
-          showToast("Download completed.", "success");
+        if (!jobId.startsWith("dl-")) {
+          // Fallback simulation step ONLY for offline / static demo
+          if (simulatedSteps >= 18) {
+            clearTimer();
+            setDownloaderStatus("completed");
+            showToast("Download completed.", "success");
+          }
+        } else {
+          // Real backend job: track consecutive network dropped responses
+          consecutiveErrors++;
+          // Wait up to 40 consecutive poll failures (~32 seconds) before declaring failure
+          if (consecutiveErrors >= 40) {
+            clearTimer();
+            setDownloaderStatus("failed");
+            setDownloaderError("Lost connection to download server. Please check your backend connection in Settings.");
+            showToast("Server connection lost.", "error");
+          }
         }
       }
-    }, 400);
+    }, 800);
   }, [currentMedia, selectedFormatId, showToast, clearTimer]);
 
   // Cancel download

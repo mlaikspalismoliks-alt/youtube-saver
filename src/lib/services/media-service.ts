@@ -30,7 +30,8 @@ class MediaService {
         return `${clean}${path}`;
       }
     }
-    const base = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+    const defaultBackend = "https://youtube-saver-wx9n.onrender.com";
+    const base = (process.env.NEXT_PUBLIC_API_URL || defaultBackend).replace(/\/+$/, "");
     return `${base}${path}`;
   }
 
@@ -136,7 +137,7 @@ class MediaService {
 
   async getDownloadStatus(downloadId: string): Promise<DownloadItem | null> {
     try {
-      const res = await fetch(`/api/downloads/${downloadId}`);
+      const res = await fetch(this.getApiUrl(`/api/downloads/${downloadId}`));
       if (!res.ok) return null;
       const data = await res.json();
       return data.job || null;
@@ -146,7 +147,7 @@ class MediaService {
   }
 
   async cancelDownload(downloadId: string): Promise<CancelDownloadResponse> {
-    const res = await fetch(`/api/downloads/${downloadId}/cancel`, {
+    const res = await fetch(this.getApiUrl(`/api/downloads/${downloadId}/cancel`), {
       method: "POST",
     });
     return res.json();
@@ -154,7 +155,7 @@ class MediaService {
 
   async getDownloads(): Promise<DownloadItem[]> {
     try {
-      const res = await fetch("/api/downloads");
+      const res = await fetch(this.getApiUrl("/api/downloads"));
       const data = await res.json();
       if (data.downloads?.length > 0) return data.downloads;
     } catch {}
@@ -163,7 +164,7 @@ class MediaService {
 
   async deleteDownload(downloadId: string): Promise<boolean> {
     try {
-      await fetch(`/api/downloads/${downloadId}`, { method: "DELETE" });
+      await fetch(this.getApiUrl(`/api/downloads/${downloadId}`), { method: "DELETE" });
     } catch {}
     return true;
   }
@@ -179,11 +180,45 @@ class MediaService {
 
   async clearTemporaryFiles(): Promise<{ freedBytes: number }> {
     try {
-      const res = await fetch("/api/storage/clear-temp", { method: "POST" });
+      const res = await fetch(this.getApiUrl("/api/storage/clear-temp"), { method: "POST" });
       const data = await res.json();
       return { freedBytes: data.freedBytes || 0 };
     } catch {
       return { freedBytes: 0 };
+    }
+  }
+
+  async getCookieStatus(): Promise<{ hasCookies: boolean; source: string; message?: string }> {
+    try {
+      const res = await fetch(this.getApiUrl("/api/settings/cookies"));
+      if (!res.ok) return { hasCookies: false, source: "none" };
+      return await res.json();
+    } catch {
+      return { hasCookies: false, source: "none" };
+    }
+  }
+
+  async saveCookies(cookiesText: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(this.getApiUrl("/api/settings/cookies"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cookiesText }),
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, message: e.message || "Failed to reach server." };
+    }
+  }
+
+  async deleteCookies(): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(this.getApiUrl("/api/settings/cookies"), {
+        method: "DELETE",
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, message: e.message || "Failed to reach server." };
     }
   }
 }

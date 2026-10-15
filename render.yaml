@@ -7,3 +7,14 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
     autoDeploy: true
+    envVars:
+      # Optional: Paste your YouTube cookies (Netscape format or base64) to bypass bot detection
+      - key: YOUTUBE_COOKIES
+        sync: false
+      # Optional: URL to a PO Token provider server (e.g. http://your-pot-server:4416)
+      # Deploy brainicism/bgutil-ytdlp-pot-provider as a separate service and put its URL here
+      - key: YT_DLP_POT_PROVIDER_URL
+        sync: false
+      # Optional: HTTP/SOCKS5 proxy URL to use a residential IP
+      - key: YTDLP_PROXY
+        sync: false

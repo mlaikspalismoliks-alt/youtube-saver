@@ -40,7 +40,12 @@ try {
 
   // 3. Run next build
   console.log('⚡ Building static HTML/CSS/JS bundles...');
-  execSync('npx next build', { stdio: 'inherit', cwd: path.join(__dirname, '..') });
+  const buildEnv = {
+    ...process.env,
+    NODE_ENV: 'production',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://youtube-saver-wx9n.onrender.com',
+  };
+  execSync('npx next build', { stdio: 'inherit', cwd: path.join(__dirname, '..'), env: buildEnv });
 
   // 4. Ensure _redirects is present in out
   const redirectsFile = path.join(outDir, '_redirects');

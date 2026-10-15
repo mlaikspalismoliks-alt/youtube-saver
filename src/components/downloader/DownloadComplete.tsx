@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { useWorkspace } from "@/context/WorkspaceContext";
 import { triggerMediaDownload } from "@/lib/utils";
+import { mediaService } from "@/lib/services/media-service";
 
 interface DownloadCompleteProps {
   media: MediaItem;
@@ -22,12 +23,19 @@ export function DownloadComplete({
   const { showToast } = useToast();
   const { activeJob } = useWorkspace();
 
+  const directFileUrl =
+    activeJob?.id && activeJob.id.startsWith("dl-")
+      ? mediaService.getApiUrl(`/api/downloads/${activeJob.id}/file`)
+      : null;
+
   const handleDownloadFile = async () => {
-    if (activeJob?.id && activeJob.id.startsWith("dl-")) {
+    if (directFileUrl) {
       // Stream the real file from the backend
       const link = document.createElement("a");
-      link.href = `/api/downloads/${activeJob.id}/file`;
+      link.href = directFileUrl;
       link.setAttribute("download", "");
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -87,27 +95,46 @@ export function DownloadComplete({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-white/10">
-        <Button
-          type="button"
-          variant="secondary"
-          size="md"
-          onClick={onProcessAnother}
-          className="w-full sm:w-auto gap-2 font-mono text-xs border-white/10 text-text-secondary hover:text-white"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          <span>Process Another Video</span>
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          onClick={handleDownloadFile}
-          className="w-full sm:w-auto gap-2 font-black tracking-wider uppercase text-xs py-3 px-8 rounded-xl shadow-neon hover:shadow-neon-lg bg-gradient-to-r from-red-600 via-accent to-rose-600"
-        >
-          <Download className="h-4 w-4" />
-          <span>Save File to Device</span>
-        </Button>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/10">
+        <div className="text-xs text-text-muted font-mono">
+          {directFileUrl ? (
+            <span>
+              If download doesn&apos;t start automatically,{" "}
+              <a
+                href={directFileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="text-accent underline hover:text-accent/80 font-semibold"
+              >
+                click here to download directly
+              </a>
+              .
+            </span>
+          ) : null}
+        </div>
+        <div className="flex flex-col-reverse sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            onClick={onProcessAnother}
+            className="w-full sm:w-auto gap-2 font-mono text-xs border-white/10 text-text-secondary hover:text-white"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Process Another Video</span>
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={handleDownloadFile}
+            className="w-full sm:w-auto gap-2 font-black tracking-wider uppercase text-xs py-3 px-8 rounded-xl shadow-neon hover:shadow-neon-lg bg-gradient-to-r from-red-600 via-accent to-rose-600"
+          >
+            <Download className="h-4 w-4" />
+            <span>Save File to Device</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

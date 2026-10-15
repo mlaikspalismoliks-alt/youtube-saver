@@ -106,7 +106,7 @@ export default function DownloaderPage() {
         {/* State 5: Failed State */}
         {downloaderStatus === "failed" && (
           <DownloadError
-            title="Unable to analyze this URL"
+            title={currentMedia ? "Download Failed" : "Unable to analyze this URL"}
             message={
               downloaderError ||
               "Please check the URL and try again. Make sure the media is authorized for internal indexing."
