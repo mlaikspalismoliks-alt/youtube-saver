@@ -7,3 +7,7 @@ media_storage
 .env.local
 .DS_Store
 src/server_backup
+cookies.txt
+*.cookies.txt
+test_body.json
+test_dl.json
