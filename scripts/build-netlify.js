@@ -51,6 +51,28 @@ try {
   const redirectsFile = path.join(outDir, '_redirects');
   fs.writeFileSync(redirectsFile, '/*    /index.html   200\n');
 
+  // 5. Copy _headers into out for Netlify CDN caching
+  const headersSource = path.join(__dirname, '..', 'public', '_headers');
+  const headersDest = path.join(outDir, '_headers');
+  if (fs.existsSync(headersSource)) {
+    fs.copyFileSync(headersSource, headersDest);
+    console.log('📋 Copied _headers for Netlify CDN caching.');
+  }
+
+  // 6. Inject DNS preconnect hints into all HTML files for faster backend API calls
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://youtube-saver-wx9n.onrender.com';
+  const preconnectTag = `<link rel="preconnect" href="${backendUrl}" crossorigin />\n<link rel="dns-prefetch" href="${backendUrl}" />\n<link rel="preconnect" href="https://i.ytimg.com" crossorigin />`;
+  const htmlFiles = fs.readdirSync(outDir).filter(f => f.endsWith('.html'));
+  for (const htmlFile of htmlFiles) {
+    const htmlPath = path.join(outDir, htmlFile);
+    let content = fs.readFileSync(htmlPath, 'utf-8');
+    if (!content.includes('preconnect') && content.includes('<head>')) {
+      content = content.replace('<head>', `<head>\n${preconnectTag}`);
+      fs.writeFileSync(htmlPath, content);
+    }
+  }
+  console.log(`⚡ Injected preconnect hints into ${htmlFiles.length} HTML pages.`);
+
   console.log('\n✅ Netlify Drag & Drop package successfully generated in the "out" folder!');
 } catch (error) {
   console.error('\n❌ Build error:', error.message);
