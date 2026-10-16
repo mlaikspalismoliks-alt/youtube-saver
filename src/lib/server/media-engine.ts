@@ -127,21 +127,14 @@ function getYtDlpExecution(): { command: string; baseArgs: string[] } {
     "--no-check-certificates",
     "--no-warnings",
     "--retries",
-    "5",
+    "3",
     "--fragment-retries",
-    "5",
+    "3",
     "--js-runtimes",
     "node",
     "--remote-components",
     "ejs:github",
   ];
-
-  // Rate-limit requests to avoid triggering YouTube's anti-bot throttling
-  commonArgs.push(
-    "--sleep-requests", "1",
-    "--sleep-interval", "2",
-    "--max-sleep-interval", "5"
-  );
 
   // Pass master server cookies if configured on the server
   const cookiePath = getCookieFilePath();
@@ -150,14 +143,13 @@ function getYtDlpExecution(): { command: string; baseArgs: string[] } {
     // When cookies are present, web client gives access to highest resolutions
     commonArgs.push(
       "--extractor-args",
-      "youtube:player_client=web,android_vr,tv,web_embedded"
+      "youtube:player_client=web,android"
     );
   } else {
-    // When no cookies are configured, avoid 'web' as primary client on datacenter IPs
-    // (prevents "Sign in to confirm you're not a bot" challenge from blocking downloads)
+    // Android client is fast, high-speed, and does not require web bot verification
     commonArgs.push(
       "--extractor-args",
-      "youtube:player_client=tv,android_vr,web_embedded,mweb"
+      "youtube:player_client=android,web"
     );
   }
 
@@ -285,7 +277,52 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
   const oembedPromise = fetchYouTubeOEmbed(url);
 
   return new Promise(async (resolve, reject) => {
+    let settled = false;
     const oembedData = await oembedPromise;
+
+    const defaultFormats: MediaFormat[] = [
+      {
+        id: "fmt-1080p-mp4",
+        type: "video",
+        label: "1080p",
+        container: "MP4",
+        resolution: "1920 × 1080",
+        estimatedSize: "~120 MB",
+        approxBytes: 125829120,
+        codec: "H.264 / AAC",
+        isPopular: true,
+      },
+      {
+        id: "fmt-720p-mp4",
+        type: "video",
+        label: "720p",
+        container: "MP4",
+        resolution: "1280 × 720",
+        estimatedSize: "~65 MB",
+        approxBytes: 68157440,
+        codec: "H.264 / AAC",
+      },
+      {
+        id: "fmt-480p-mp4",
+        type: "video",
+        label: "480p",
+        container: "MP4",
+        resolution: "854 × 480",
+        estimatedSize: "~35 MB",
+        approxBytes: 36700160,
+        codec: "H.264 / AAC",
+      },
+      {
+        id: "fmt-audio-mp3",
+        type: "audio",
+        label: "Audio",
+        container: "MP3",
+        bitrate: "320 kbps",
+        estimatedSize: "~8.5 MB",
+        approxBytes: 8912896,
+        codec: "MP3 Stereo",
+      },
+    ];
 
     const { command, baseArgs } = getYtDlpExecution();
     const args = [
@@ -304,6 +341,28 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
 
     const py = spawn(command, args);
 
+    // Fast-response timeout: If yt-dlp metadata extraction takes more than 2.5s,
+    // immediately return official YouTube oEmbed metadata so user doesn't wait
+    const fastTimer = setTimeout(() => {
+      if (!settled && oembedData) {
+        settled = true;
+        try { py.kill(); } catch {}
+        resolve({
+          id: oembedData.videoId,
+          url,
+          title: oembedData.title,
+          duration: "HQ Stream",
+          durationSeconds: 0,
+          source: "YouTube",
+          author: oembedData.author,
+          uploadedDate: "Recent",
+          thumbnailUrl: oembedData.thumbnail,
+          aspectRatio: "16:9",
+          availableFormats: defaultFormats,
+        });
+      }
+    }, 2500);
+
     let stdoutData = "";
     let stderrData = "";
 
@@ -316,6 +375,10 @@ export async function extractMediaInfo(url: string): Promise<MediaItem> {
     });
 
     py.on("close", (code) => {
+      clearTimeout(fastTimer);
+      if (settled) return;
+      settled = true;
+
       // If yt-dlp failed or was blocked by bot check, recover immediately with oEmbed metadata
       if (code !== 0 || !stdoutData.trim()) {
         if (oembedData) {
@@ -616,6 +679,10 @@ export function startMediaDownload(
     "--newline",
     "--no-warnings",
     "--no-check-certificates",
+    "--concurrent-fragments",
+    "5",
+    "--buffer-size",
+    "64K",
   ];
 
   const ffmpeg = getFfmpegPath();
@@ -730,7 +797,7 @@ export function startMediaDownload(
           // If the video is in AV1/VP9 or audio is Opus, normalize to universal H.264 + AAC MP4
           if (!hasH264 || !hasAac || !finalFile.endsWith(".mp4")) {
             const tempNormalized = path.join(STORAGE_DIR, `${jobId}_norm.mp4`);
-            const vArgs = hasH264 ? ["-c:v", "copy"] : ["-c:v", "libx264", "-preset", "veryfast", "-crf", "22"];
+            const vArgs = hasH264 ? ["-c:v", "copy"] : ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "23"];
             const aArgs = hasAac ? ["-c:a", "copy"] : ["-c:a", "aac", "-b:a", "192k"];
 
             const convertRes = spawnSync(
